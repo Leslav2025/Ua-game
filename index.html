@@ -1,92 +1,27 @@
-                ctx.fillStyle = '#2ecc71'; ctx.fillRect(x*32+4, y*32+4, 24, 24);
-            }
-        });
-    });
-
-    // Малюємо танк (ОУН стиль)
-    ctx.save();
-    ctx.translate(player.x*32+16, player.y*32+16);
-    if(player.dir === 'down') ctx.rotate(Math.PI);
-    if(player.dir === 'left') ctx.rotate(-Math.PI/2);
-    if(player.dir === 'right') ctx.rotate(Math.PI/2);
-    
-    ctx.fillStyle = '#000'; ctx.fillRect(-12, -12, 24, 24); // Корпус
-    ctx.fillStyle = '#ff0000'; ctx.fillRect(-12, -12, 24, 6); // Декор
-    ctx.fillStyle = '#555'; ctx.fillRect(-4, -18, 8, 12); // Дуло
-    ctx.restore();
-
-    // Малюємо снаряди
-    bullets.forEach((b, index) => {
-        ctx.fillStyle = '#f1c40f';
-        ctx.beginPath(); ctx.arc(b.x*32+16, b.y*32+16, 4, 0, 7); ctx.fill();
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OUN Tank: Battle for UA</title>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; background: #0a0a0a; color: #fff; font-family: 'Courier New', monospace; margin: 0; padding: 10px; touch-action: manipulation; overflow-y: auto; min-height: 100vh; }
+        #ton-connect-button { margin-bottom: 10px; }
+        .ui-panel { background: rgba(30, 0, 0, 0.9); border: 2px solid #ff0000; border-radius: 15px; padding: 10px; margin-bottom: 10px; text-align: center; width: 90%; box-shadow: 0 0 15px #ff0000; }
+        .stats-row { display: flex; justify-content: space-around; align-items: center; }
+        .score-box { font-size: 20px; font-weight: bold; color: #f1c40f; }
+        .ammo-box { font-size: 20px; font-weight: bold; color: #ff4757; }
+        canvas { border: 3px solid #333; border-radius: 12px; background: #111; max-width: 95vw; }
         
-        // Рух снаряда
-        if(b.d === 'up') b.y -= 0.2; if(b.d === 'down') b.y += 0.2;
-        if(b.d === 'left') b.x -= 0.2; if(b.d === 'right') b.x += 0.2;
+        /* НОВЕ КЕРУВАННЯ (ХРЕСТИК) */
+        .controls { display: grid; grid-template-columns: repeat(3, 70px); grid-template-rows: repeat(3, 70px); gap: 10px; margin-top: 20px; justify-content: center; }
+        .btn { width: 70px; height: 70px; background: #222; border: 2px solid #ff0000; border-radius: 15px; font-size: 30px; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.1s; user-select: none; }
+        .btn:active { background: #ff0000; color: #000; }
+        .btn-up { grid-column: 2; grid-row: 1; }
+        .btn-left { grid-column: 1; grid-row: 2; }
+        .btn-fire { background: #ff4757; border-color: #fff; grid-column: 2; grid-row: 2; font-size: 35px; }
+        .btn-right { grid-column: 3; grid-row: 2; }
+        .btn-down { grid-column: 2; grid-row: 3; }
 
-        // Колізія снаряда
-        let gx = Math.round(b.x), gy = Math.round(b.y);
-        if(activeMap[gy] && activeMap[gy][gx] === 1) { 
-            activeMap[gy][gx] = 0; // Руйнуємо стіну
-            bullets.splice(index, 1); 
-            score += 10; updateUI();
-        }
-        // Влучання в монстра
-        monsters.forEach((m, mi) => {
-            if(Math.abs(b.x - m.x) < 0.5 && Math.abs(b.y - m.y) < 0.5) {
-                monsters.splice(mi, 1);
-                bullets.splice(index, 1);
-                score += 100; updateUI();
-            }
-        });
-    });
-
-    // Малюємо монстрів
-    monsters.forEach(m => {
-        ctx.fillStyle = '#ff4757'; ctx.fillRect(m.x*32+6, m.y*32+6, 20, 20);
-    });
-}
-
-function move(dir) {
-    let nx = player.x, ny = player.y;
-    if (dir === 'ArrowUp') { ny--; player.dir = 'up'; }
-    if (dir === 'ArrowDown') { ny++; player.dir = 'down'; }
-    if (dir === 'ArrowLeft') { nx--; player.dir = 'left'; }
-    if (dir === 'ArrowRight') { nx++; player.dir = 'right'; }
-
-    if (activeMap[ny] && activeMap[ny][nx] !== 1) {
-        player.x = nx; player.y = ny;
-        if (activeMap[ny][nx] === 2) alert("Рівень пройдено!");
-    }
-    draw();
-}
-
-function shoot() {
-    if (ammo > 0) {
-        bullets.push({x: player.x, y: player.y, d: player.dir});
-        ammo--;
-        updateUI();
-    } else {
-        document.getElementById('payment-modal').style.display = 'block';
-    }
-}
-
-async function buyAmmo() {
-    try {
-        const tx = { validUntil: Math.floor(Date.now()/1000)+300, messages: [{ address: "UQDXq1iAqu88tVRG62_k03kAXELu_1gzRBMye-VZoFRIRtWw", amount: "10000000" }] };
-        await tonConnectUI.sendTransaction(tx);
-        ammo += 20;
-        updateUI();
-        document.getElementById('payment-modal').style.display = 'none';
-    } catch (e) { alert("Помилка оплати"); }
-}
-
-function updateUI() {
-    document.getElementById('score').innerText = score;
-    document.getElementById('ammo').innerText = ammo;
-}
-
-setInterval(draw, 30);
-</script>
-</body>
-</html>
+        #payment-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a0000; padding
