@@ -198,4 +198,18 @@ function updateUI() {
 
 setInterval(() => {
     monsters.forEach(m => {
-        let dirs = [{x:0,y:1},{x:0,y:-1},{x:1,y:0
+        let dirs = [{x:0,y:1},{x:0,y:-1},{x:1,y:0},{x:-1,y:0}];
+        let d = dirs[Math.floor(Math.random()*dirs.length)];
+        if (activeMap[m.y+d.y] && activeMap[m.y+d.y][m.x+d.x] === 0) { m.x += d.x; m.y += d.y; }
+        if (Math.round(m.x) === player.x && Math.round(m.y) === player.y) {
+            playSound(100, 'sawtooth', 0.4);
+            alert("Танк підбито!"); 
+            player = { x: 1, y: 1, dir: 'up' };
+        }
+    });
+}, 1000);
+
+setInterval(draw, 30);
+</script>
+</body>
+</html>
