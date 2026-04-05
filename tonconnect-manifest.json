@@ -1,4 +1,5 @@
-const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-    manifestUrl: 'https://leslav2025.github.io/Ua-game/tonconnect-manifest.json',
-    buttonRootId: 'ton-connect-button'
-});
+{
+  "url": "https://leslav2025.github.io/Ua-game/",
+  "name": "OUN Tank: Battle for UA",
+  "iconUrl": "https://leslav2025.github.io/Ua-game/1000111543.jpg"
+}
