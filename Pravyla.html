@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Правила гри - OUN Tank</title>
+    <style>
+        body {
+            background: #050505;
+            color: #fff;
+            font-family: sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            background: rgba(20, 0, 0, 0.9);
+            border: 2px solid #ff4757;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);
+        }
+        h1 { color: #ff4757; text-align: center; font-size: 24px; text-transform: uppercase; }
+        h2 { color: #f1c40f; font-size: 18px; margin-top: 20px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 10px; }
+        .back-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 30px;
+            background: #2ecc71;
+            color: #fff;
+            text-decoration: none;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 12px;
+            text-transform: uppercase;
+            box-shadow: 0 4px #1a7d43;
+        }
+        .back-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #1a7d43;
+        }
+    </style>
+</head>
+<body>
 
+    <div class="container">
+        <h1>🎖️ Бойовий Статут</h1>
+
+        <h2>🔌 1. Підключення</h2>
+        <ul>
+            <li>Натисніть <b>"Connect Wallet"</b> на головному екрані. Без цього вивід UA та купівля снарядів будуть недоступні.</li>
+        </ul>
+
+        <h2>👾 2. Бойова задача</h2>
+        <ul>
+            <li>Пройдіть 4 рівні лабіринтів та зачистіть Штаб на 5-му рівні.</li>
+            <li>Кількість ворогів зростає: від 2-х на першому рівні до 5-ти на фінальному.</li>
+        </ul>
+
+        <h2>🚀 3. Вогнева підтримка</h2>
+        <ul>
+            <li>Кожен постріл витрачає снаряд. Поповнити БК можна через TON-гаманець.</li>
+        </ul>
+
+        <h2>💥 4. Пошкодження та штрафи</h2>
+        <ul>
+            <li>Кожне влучання ворога у ваш танк коштує вам <b>-200 UA</b>.</li>
+            <li><b>Перше влучання:</b> повернення на старт рівня.</li>
+            <li><b>Друге влучання:</b> відступ на один рівень назад.</li>
+        </ul>
+
+        <h2>💰 5. Виплата трофеїв</h2>
+        <ul>
+            <li>Кнопка виводу з'являється лише на 5-му рівні після знищення всіх ворогів.</li>
+            <li>Запит автоматично надсилається в Telegram-бот адміністрації.</li>
+        </ul>
+
+        <a href="index.html" class="back-btn">⬅️ Назад до гри</a>
+    </div>
+
+</body>
+</html>
