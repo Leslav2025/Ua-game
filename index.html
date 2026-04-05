@@ -24,12 +24,30 @@
         }
         .info-btn:hover { background: #f1c40f; color: #000; }
 
+        /* Кнопка музики */
+        .music-ctrl {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: #222;
+            border: 2px solid #f1c40f;
+            color: #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .ui-panel { background: rgba(20, 0, 0, 0.9); border: 2px solid #ff4757; border-radius: 15px; padding: 10px; margin-bottom: 10px; text-align: center; width: 90%; box-shadow: 0 0 15px #ff4757; }
         .stats-row { display: flex; justify-content: space-around; align-items: center; }
         .score-box { font-size: 18px; font-weight: bold; color: #f1c40f; }
         .ammo-box { font-size: 18px; font-weight: bold; color: #ff4757; }
         
-        /* Стиль для герба в заголовку */
         .header-with-crest {
             color:#ff4757; 
             font-size:16px; 
@@ -40,9 +58,9 @@
             justify-content: center;
         }
         .header-crest-img {
-            height: 20px; /* Висота іконки, як у тексту */
+            height: 20px;
             width: auto;
-            margin-right: 8px; /* Відступ від тексту */
+            margin-right: 8px;
         }
 
         canvas { border: 3px solid #444; border-radius: 12px; background: #000; max-width: 95vw; display: block; }
@@ -57,12 +75,18 @@
 </head>
 <body>
 
+    <audio id="bgMusic" loop>
+        <source src="https://raw.githubusercontent.com/leslav2025/OUN/main/%D0%93%D1%96%D0%BC%D0%BD-%D0%9E%D0%A3%D0%9D-%D0%A3%D0%9F%D0%90-%D0%97%D1%80%D0%BE%D0%B4%D0%B8%D0%BB%D0%B8%D1%81%D1%8C-%D0%BC%D0%B8-%D0%B2%D0%B5%D0%BB%D0%B8%D0%BA%D0%BE%D1%97-%D0%B3%D0%BE%D0%B4%D0%B8%D0%BD%D0%B8.mp4" type="audio/mp4">
+    </audio>
+
+    <button class="music-ctrl" onclick="toggleMusic()" id="musicBtn">🔇</button>
+
     <div id="ton-connect-button"></div>
     <a href="Pravyla.html" class="info-btn">📜 ПРАВИЛА ГРИ</a>
 
     <div class="ui-panel">
         <div id="lvl-txt" class="header-with-crest">
-            <img src="630_360_1699520788-265.jpg" class="header-crest-img" alt="ОУН Герб">
+            <img src="630_360_1699520788-265.jpg" class="header-crest-img" alt="ОУН">
             🎖️ ШТУРМ РІВЕНЬ 1
         </div>
         <div class="stats-row">
@@ -73,10 +97,7 @@
 
     <canvas id="gameCanvas" width="352" height="224"></canvas>
 
-    <div id="withdraw-panel" class="withdraw-panel">
-        <h2 style="color:#f1c40f; margin:0;">ШТАБ ВЗЯТО!</h2>
-        <button class="withdraw-btn" onclick="requestWithdraw()">ВИВЕСТИ UA ТА ОБНУЛИТИ</button>
-    </div>
+    <div id="withdraw-panel" class="withdraw-panel"></div>
 
     <div id="game-controls" class="controls">
         <button class="btn" onclick="move('ArrowUp')">↑</button>
@@ -100,11 +121,14 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const bgMusic = document.getElementById('bgMusic');
+const musicBtn = document.getElementById('musicBtn');
 
 let score = parseInt(localStorage.getItem('oun_score')) || 0;
 let ammo = parseInt(localStorage.getItem('oun_ammo')) || 10;
 let currentLevel = 1;
 let playerHits = 0;
+let isMusicPlaying = false;
 let player = { x: 1, y: 1, dir: 'up' };
 let bullets = [], enemyBullets = [], monsters = [];
 
@@ -114,6 +138,12 @@ const maps = {
     3: [[1,1,1,1,1,1,1,1,1,1,1],[1,0,4,0,4,0,4,0,4,0,1],[1,0,1,0,1,0,1,0,1,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,4,1,4,1,4,1,4,1,0,1],[1,0,0,0,0,0,0,0,0,2,1],[1,1,1,1,1,1,1,1,1,1,1]],
     4: [[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,4,2,4,0,0,0,1],[1,0,1,0,0,0,0,0,1,0,1],[1,4,1,0,4,4,4,0,1,4,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,4,0,1,0,1,0,4,0,1],[1,1,1,1,1,1,1,1,1,1,1]]
 };
+
+function toggleMusic() {
+    if (isMusicPlaying) { bgMusic.pause(); musicBtn.innerText = '🔇'; } 
+    else { bgMusic.play().catch(e => console.log("Чекаю кліку")); musicBtn.innerText = '🔊'; }
+    isMusicPlaying = !isMusicPlaying;
+}
 
 function saveData() { localStorage.setItem('oun_score', score); localStorage.setItem('oun_ammo', ammo); }
 
@@ -132,15 +162,13 @@ function switchLevel(lvl) {
     } else {
         activeMap = JSON.parse(JSON.stringify(maps[lvl]));
         lvlTitle = `ШТУРМ РІВЕНЬ ${lvl}`;
-        let enemyCount = lvl + 1; // Р1=2, Р2=3, Р3=4, Р4=5
+        let enemyCount = lvl + 1;
         monsters = [];
         for(let i=0; i<enemyCount; i++) {
             monsters.push({x: 4+Math.random()*5, y: 1+Math.random()*4, hp:1, canShoot:true});
         }
     }
-    // Оновлюємо текст, зберігаючи герб
-    document.getElementById('lvl-txt').innerHTML = `<img src="630_360_1699520788-265.jpg" class="header-crest-img" alt="ОУН Герб"> 🎖️ ${lvlTitle}`;
-    
+    document.getElementById('lvl-txt').innerHTML = `<img src="630_360_1699520788-265.jpg" class="header-crest-img"> 🎖️ ${lvlTitle}`;
     document.getElementById('withdraw-panel').style.display = 'none';
     document.getElementById('game-controls').style.display = 'grid';
 }
@@ -149,18 +177,13 @@ function handlePlayerHit() {
     playerHits++;
     score = Math.max(0, score - 200);
     saveData();
-    if (playerHits >= 2) {
-        alert("ВЛУЧАННЯ! ПОВЕРНЕННЯ НА РІВЕНЬ НИЖЧЕ");
-        switchLevel(currentLevel - 1);
-    } else {
-        alert("ВЛУЧАННЯ! -200 UA");
-        player = { x: 1, y: 1, dir: 'up' };
-    }
+    if (playerHits >= 2) { alert("ВЛУЧАННЯ! НАЗАД"); switchLevel(currentLevel - 1); } 
+    else { alert("ВЛУЧАННЯ! -200 UA"); player = { x: 1, y: 1, dir: 'up' }; }
 }
 
 function requestWithdraw() {
-    const wallet = tonConnectUI.account ? tonConnectUI.account.address : "Не підключено";
-    const message = `Запит на вивід!\nСума: ${score} UA\nГаманець: ${wallet}`;
+    const wallet = tonConnectUI.account ? tonConnectUI.account.address : "Немає";
+    const message = `Запит виводу!\nСума: ${score} UA\nГаманець: ${wallet}`;
     window.open(`https://t.me/tokenpist_bot?text=${encodeURIComponent(message)}`, '_blank');
     localStorage.removeItem('oun_score');
     setTimeout(() => { window.location.reload(); }, 2000);
@@ -199,7 +222,7 @@ function draw() {
     
     if(currentLevel === 5 && monsters.length === 0) {
         document.getElementById('withdraw-panel').style.display = 'block';
-        document.getElementById('withdraw-panel').innerHTML = `<img src="630_360_1699520788-265.jpg" class="header-crest-img" alt="ОУН Герб"> <h2 style="color:#f1c40f; margin:0;"> ШТАБ ВЗЯТО!</h2> <button class="withdraw-btn" onclick="requestWithdraw()">ВИВЕСТИ UA ТА ОБНУЛИТИ</button>`;
+        document.getElementById('withdraw-panel').innerHTML = `<img src="630_360_1699520788-265.jpg" style="height:40px"><h2 style="color:#f1c40f;margin:5px">ШТАБ ВЗЯТО!</h2><button class="withdraw-btn" onclick="requestWithdraw()">ВИВЕСТИ UA</button>`;
         document.getElementById('game-controls').style.display = 'none';
     }
 
@@ -208,6 +231,7 @@ function draw() {
 }
 
 function move(dir) {
+    if(!isMusicPlaying) toggleMusic();
     let nx = player.x, ny = player.y;
     if (dir === 'ArrowUp') { ny--; player.dir = 'up'; }
     if (dir === 'ArrowDown') { ny++; player.dir = 'down'; }
@@ -220,6 +244,7 @@ function move(dir) {
 }
 
 function shoot() {
+    if(!isMusicPlaying) toggleMusic();
     if (ammo > 0) { bullets.push({x: player.x, y: player.y, d: player.dir}); ammo--; saveData(); }
     else { document.getElementById('payment-modal').style.display = 'block'; }
 }
