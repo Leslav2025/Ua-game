@@ -51,6 +51,7 @@
 
     <div id="payment-modal">
         <h2 style="color:#ff4757">БК ЗАКІНЧИВСЯ!</h2>
+        <p style="color: #ccc; font-size: 14px;">Потрібно 0.01 TON для поповнення</p>
         <button class="pay-btn" onclick="buyAmmo()">КУПИТИ 20 СНАРЯДІВ (0.01 TON)</button>
         <button onclick="document.getElementById('payment-modal').style.display='none'" style="background:none; color:gray; border:none; margin-top:10px">Назад</button>
     </div>
@@ -143,7 +144,6 @@ function draw() {
             }
         });
 
-        // ПРОБИТТЯ ЧЕРВОНИХ СТІН (тип 1) НА ВСІХ РІВНЯХ
         if(activeMap[gy] && activeMap[gy][gx] === 1) { 
             activeMap[gy][gx] = 0; 
             bullets.splice(i, 1); 
@@ -185,11 +185,28 @@ function shoot() {
 }
 
 async function buyAmmo() {
+    if (!tonConnectUI.connected) {
+        alert("Спочатку підключіть гаманець!");
+        return;
+    }
     try {
-        const tx = { validUntil: Math.floor(Date.now()/1000)+300, messages: [{ address: "UQDXq1iAqu88tVRG62_k03kAXELu_1gzRBMye-VZoFRIRtWw", amount: "10000000" }] };
-        await tonConnectUI.sendTransaction(tx);
-        ammo += 20; saveData(); document.getElementById('payment-modal').style.display = 'none';
-    } catch (e) { alert("Відмова"); }
+        const transaction = {
+            validUntil: Math.floor(Date.now() / 1000) + 300,
+            messages: [{
+                address: "UQDXq1iAqu88tVRG62_k03kAXELu_1gzRBMye-VZoFRIRtWw",
+                amount: "10000000" // 0.01 TON
+            }]
+        };
+        const result = await tonConnectUI.sendTransaction(transaction);
+        if (result) {
+            ammo += 20;
+            saveData();
+            document.getElementById('payment-modal').style.display = 'none';
+            alert("Успішно! +20 снарядів.");
+        }
+    } catch (e) {
+        alert("Помилка транзакції. Перевірте баланс TON.");
+    }
 }
 
 setInterval(() => {
